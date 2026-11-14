@@ -1,59 +1,87 @@
 ---
+import { getCollection } from 'astro:content';
 import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
+import Playlist from '../components/Playlist.astro';
+import FormattedDate from '../components/FormattedDate.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft))
+	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+	.slice(0, 3);
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="garden">
 	<head>
 		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
 	</head>
 	<body>
 		<Header />
 		<main>
-			<h1>🧑‍🚀 Hello, Astronaut!</h1>
-			<p>
-				Welcome to the official <a href="https://astro.build/">Astro</a> blog starter template. This
-				template serves as a lightweight, minimally-styled starting point for anyone looking to
-				build a personal website, blog, or portfolio with Astro.
-			</p>
-			<p>
-				This template comes with a few integrations already configured in your{' '}
-				<code>astro.config.mjs</code> file. You can customize your setup with{' '}
-				<a href="https://astro.build/integrations">Astro Integrations</a> to add tools like
-				Tailwind, React, or Vue to your project.
-			</p>
-			<p>Here are a few ideas on how to get started with the template:</p>
-			<ul>
-				<li>
-					Edit this page in <code>src/pages/index.astro</code>
-				</li>
-				<li>
-					Edit the site header items in <code>src/components/Header.astro</code>
-				</li>
-				<li>
-					Add your name to the footer in <code>src/components/Footer.astro</code>
-				</li>
-				<li>
-					Check out the included blog posts in <code>src/content/blog/</code>
-				</li>
-				<li>
-					Customize the blog post page layout in <code>src/layouts/BlogPost.astro</code>
-				</li>
-			</ul>
-			<p>
-				Have fun! If you get stuck, remember to{' '}
-				<a href="https://docs.astro.build/">read the docs</a> or{' '}
-				<a href="https://astro.build/chat">join us on Discord</a> to ask questions.
-			</p>
-			<p>
-				Looking for a blog template with a bit more personality? Check out{' '}
-				<a href="https://github.com/Charca/astro-blog-template">astro-blog-template</a> by{' '}
-				<a href="https://twitter.com/Charca">Maxi Ferreira</a>.
-			</p>
+			<section class="welcome" aria-labelledby="welcome-title">
+				<p class="eyebrow">A little journal by Cakey &amp; Cynthia</p>
+				<h1 id="welcome-title">Our story, one day at a time.</h1>
+				<p class="welcome-copy">
+					A place to keep the moments, milestones, and small everyday things we want to remember as
+					we make our way toward marriage.
+				</p>
+				<a class="button-link" href="/blog/">Read our journal <span aria-hidden="true">→</span></a>
+			</section>
+
+			<Playlist />
+
+			<section class="latest" aria-labelledby="latest-title">
+				<div class="section-heading">
+					<div>
+						<p class="eyebrow">Notes from our life</p>
+						<h2 id="latest-title">The latest stories</h2>
+					</div>
+					<a href="/blog/">All stories <span aria-hidden="true">→</span></a>
+				</div>
+				{posts.length > 0 ? (
+					<div class="story-grid">
+						{posts.map((post) => (
+							<article class="story-card">
+								<a href={`/blog/${post.id}/`}>
+									{post.data.heroImage && <img src={post.data.heroImage.src} alt="" loading="lazy" />}
+									<p class="story-date"><FormattedDate date={post.data.pubDate} /></p>
+									<h3>{post.data.title}</h3>
+									<p>{post.data.description}</p>
+								</a>
+							</article>
+						))}
+					</div>
+				) : (
+					<p class="empty-stories">Our first story is on its way. Check back soon.</p>
+				)}
+			</section>
 		</main>
 		<Footer />
 	</body>
 </html>
+
+<style>
+	main { max-width: 1080px; }
+	.welcome { padding: clamp(3rem, 9vw, 7rem) 0 5rem; max-width: 760px; }
+	.eyebrow { margin: 0 0 .8rem; color: var(--accent); font-size: .78rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+	h1 { max-width: 700px; font-family: var(--font-serif); font-size: clamp(3rem, 8vw, 6.2rem); font-weight: 500; letter-spacing: -.055em; line-height: .98; }
+	.welcome-copy { max-width: 610px; margin: 1.5rem 0 2rem; color: var(--text-muted); font-size: clamp(1.05rem, 2vw, 1.3rem); }
+	.button-link { display: inline-flex; gap: .8rem; align-items: center; padding: .85rem 1.2rem; border-radius: 999px; background: var(--accent); color: var(--accent-ink); font-size: 1rem; font-weight: 700; text-decoration: none; }
+	.button-link:hover { background: var(--accent-hover); color: var(--accent-ink); }
+	.latest { padding: 4rem 0 5rem; }
+	.section-heading { display: flex; align-items: end; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; }
+	.section-heading h2 { font-family: var(--font-serif); font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 500; }
+	.section-heading > a { color: var(--accent); font-size: .95rem; text-decoration: none; }
+	.story-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.2rem; }
+	.story-card { overflow: hidden; border: 1px solid var(--line); border-radius: 1.25rem; background: var(--surface); }
+	.story-card > a { display: block; height: 100%; padding: 1.2rem; color: inherit; text-decoration: none; }
+	.story-card img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: .8rem; }
+	.story-date { margin: 1rem 0 .3rem; color: var(--text-muted); font-size: .82rem; }
+	.story-card h3 { font-family: var(--font-serif); font-size: 1.6rem; font-weight: 500; }
+	.story-card p:last-child { margin: .5rem 0 0; color: var(--text-muted); font-size: .95rem; }
+	.story-card a:hover h3 { color: var(--accent); }
+	.empty-stories { padding: 2rem; border: 1px dashed var(--line); border-radius: 1rem; color: var(--text-muted); text-align: center; }
+	@media (max-width: 760px) { .story-grid { grid-template-columns: 1fr; } .section-heading { align-items: start; flex-direction: column; } }
+</style>

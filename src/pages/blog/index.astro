@@ -7,106 +7,69 @@ import FormattedDate from '../../components/FormattedDate.astro';
 import Header from '../../components/Header.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
 
-const posts = (await getCollection('blog')).sort(
+const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
 ---
 
 <!doctype html>
-<html lang="en">
-	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-		<style>
-			main {
-				width: 960px;
-			}
-			ul {
-				display: flex;
-				flex-wrap: wrap;
-				gap: 2rem;
-				list-style-type: none;
-				margin: 0;
-				padding: 0;
-			}
-			ul li {
-				width: calc(50% - 1rem);
-			}
-			ul li * {
-				text-decoration: none;
-				transition: 0.2s ease;
-			}
-			ul li:first-child {
-				width: 100%;
-				margin-bottom: 1rem;
-				text-align: center;
-			}
-			ul li:first-child img {
-				width: 100%;
-			}
-			ul li:first-child .title {
-				font-size: 2.369rem;
-			}
-			ul li img {
-				margin-bottom: 0.5rem;
-				border-radius: 12px;
-			}
-			ul li a {
-				display: block;
-			}
-			.title {
-				margin: 0;
-				color: rgb(var(--black));
-				line-height: 1;
-			}
-			.date {
-				margin: 0;
-				color: rgb(var(--gray));
-			}
-			ul li a:hover h4,
-			ul li a:hover .date {
-				color: rgb(var(--accent));
-			}
-			ul a:hover img {
-				box-shadow: var(--box-shadow);
-			}
-			@media (max-width: 720px) {
-				ul {
-					gap: 0.5em;
-				}
-				ul li {
-					width: 100%;
-					text-align: center;
-				}
-				ul li:first-child {
-					margin-bottom: 0;
-				}
-				ul li:first-child .title {
-					font-size: 1.563em;
-				}
-			}
-		</style>
-	</head>
+<html lang="en" data-theme="garden">
+	<head><BaseHead title={`Journal · ${SITE_TITLE}`} description={SITE_DESCRIPTION} /></head>
 	<body>
 		<Header />
 		<main>
-			<section>
-				<ul>
+			<header class="page-heading">
+				<p class="eyebrow">The journal</p>
+				<h1>Our life, in little chapters.</h1>
+				<p>Stories, milestones, and memories from our journey together.</p>
+			</header>
+			{posts.length > 0 ? (
+				<div class="story-grid">
 					{posts.map((post) => (
-						<li>
+						<article class="story-card">
 							<a href={`/blog/${post.id}/`}>
-								{post.data.heroImage && (
-									<Image width={720} height={360} src={post.data.heroImage} alt="" />
-								)}
-								<h4 class="title">{post.data.title}</h4>
-								<p class="date">
-									<FormattedDate date={post.data.pubDate} />
-								</p>
+								{post.data.heroImage && <Image width={720} height={450} src={post.data.heroImage} alt="" />}
+								<div class="story-copy">
+									<p class="date"><FormattedDate date={post.data.pubDate} /></p>
+									<h2>{post.data.title}</h2>
+									<p>{post.data.description}</p>
+									<span class="read-more">Read story <span aria-hidden="true">→</span></span>
+								</div>
 							</a>
-						</li>
+						</article>
 					))}
-				</ul>
-			</section>
+				</div>
+			) : (
+				<div class="empty-state">
+					<span class="flower" aria-hidden="true">✿</span>
+					<h2>Our first story is on its way.</h2>
+					<p>We’ll share a new chapter here soon.</p>
+				</div>
+			)}
 		</main>
 		<Footer />
 	</body>
 </html>
+
+<style>
+	main { padding-top: 4rem; }
+	.page-heading { max-width: 720px; margin: 0 auto 3rem; text-align: center; }
+	.eyebrow { color: var(--accent); font-size: .78rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+	.page-heading h1 { font-family: var(--font-serif); font-size: clamp(2.7rem, 7vw, 5rem); font-weight: 500; letter-spacing: -.05em; line-height: 1; }
+	.page-heading > p:last-child { color: var(--text-muted); }
+	.story-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.2rem; }
+	.story-card { overflow: hidden; border: 1px solid var(--line); border-radius: 1.25rem; background: var(--surface); }
+	.story-card > a { display: block; height: 100%; color: inherit; text-decoration: none; }
+	.story-card img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+	.story-copy { padding: 1.4rem; }
+	.date { margin: 0 0 .35rem; color: var(--text-muted); font-size: .82rem; }
+	.story-copy h2 { font-family: var(--font-serif); font-size: 1.8rem; font-weight: 500; }
+	.story-copy > p:not(.date) { color: var(--text-muted); }
+	.read-more { color: var(--accent); font-size: .9rem; font-weight: 700; }
+	.story-card a:hover h2 { color: var(--accent); }
+	.empty-state { max-width: 600px; margin: 2rem auto 6rem; padding: 3rem 1rem; text-align: center; }
+	.flower { color: var(--accent); font-size: 2rem; }
+	.empty-state h2 { margin-top: .8rem; font-family: var(--font-serif); font-size: 2rem; font-weight: 500; }
+	.empty-state p { color: var(--text-muted); }
+	@media (max-width: 700px) { .story-grid { grid-template-columns: 1fr; } }
+</style>

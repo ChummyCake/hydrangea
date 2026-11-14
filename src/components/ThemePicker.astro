@@ -1,0 +1,227 @@
+---
+const themes = [
+	{ id: 'garden', name: 'Garden', swatch: '#49715a', accent: '#7ea88a', highlight: '#e5f1e5' },
+	{ id: 'sunset', name: 'Sunset', swatch: '#c76c51', accent: '#d98e77', highlight: '#f9e7de' },
+	{ id: 'lavender', name: 'Lavender', swatch: '#7661a2', accent: '#9d8dcb', highlight: '#eee7ff' },
+	{ id: 'midnight', name: 'Midnight', swatch: '#93b9c7', accent: '#bfd8e4', highlight: '#eaf3f7' },
+];
+const defaultTheme = 'garden';
+---
+
+<div class="theme-picker" data-theme-picker>
+	<label class="theme-label" for="theme-trigger">Theme</label>
+	<div class="theme-menu-wrap">
+		<button
+			type="button"
+			id="theme-trigger"
+			class="theme-trigger"
+			aria-haspopup="listbox"
+			aria-expanded="false"
+			data-theme-trigger
+		>
+			<span class="theme-trigger-content">
+				<span class="theme-swatch" data-theme-indicator aria-hidden="true"></span>
+				<span class="theme-trigger-label" data-theme-label>Garden</span>
+			</span>
+			<span class="theme-caret" aria-hidden="true"></span>
+		</button>
+		<div class="theme-menu" role="listbox" aria-label="Choose your theme" data-theme-menu>
+			{themes.map((theme) => (
+				<button
+					type="button"
+					class="theme-option"
+					role="option"
+					aria-selected="false"
+					data-theme-choice={theme.id}
+					style={`--option-swatch:${theme.swatch}; --option-accent:${theme.accent}; --option-highlight:${theme.highlight};`}
+				>
+					<span class="theme-option-preview" aria-hidden="true">
+						<span class="preview-slab preview-main"></span>
+						<span class="preview-slab preview-accent"></span>
+						<span class="preview-slab preview-soft"></span>
+					</span>
+					<span class="theme-option-copy">
+						<span class="option-name">{theme.name}</span>
+					</span>
+				</button>
+			))}
+		</div>
+	</div>
+</div>
+
+<script>
+	const preferenceKey = 'hydrangea-theme';
+	const validThemes = ['garden', 'sunset', 'lavender', 'midnight'];
+	const defaultTheme = 'garden';
+	const picker = document.querySelector('[data-theme-picker]');
+	const trigger = document.querySelector('[data-theme-trigger]');
+	const menu = document.querySelector('[data-theme-menu]');
+	const label = document.querySelector('[data-theme-label]');
+	const indicator = document.querySelector('[data-theme-indicator]');
+	const options = [...document.querySelectorAll('[data-theme-choice]')];
+	const themeLookup = Object.fromEntries(options.map((option) => [option.dataset.themeChoice, option]));
+
+	const setSelectedTheme = (theme: string) => {
+		if (!picker || !trigger || !label || !indicator || !menu) return;
+		if (!validThemes.includes(theme)) return;
+		document.documentElement.dataset.theme = theme;
+		const activeOption = themeLookup[theme];
+		const activeTheme = (activeOption as HTMLElement)?.style.getPropertyValue('--option-swatch') || '#49715a';
+		label.textContent = theme.charAt(0).toUpperCase() + theme.slice(1);
+		indicator.style.background = activeTheme;
+		options.forEach((option) => {
+			const isSelected = option.dataset.themeChoice === theme;
+			option.setAttribute('aria-selected', String(isSelected));
+			option.classList.toggle('is-selected', isSelected);
+		});
+	};
+
+	const applyTheme = (theme: string) => {
+		setSelectedTheme(theme);
+		try {
+			localStorage.setItem(preferenceKey, theme);
+		} catch {
+			// Theme selection still works for this page view without storage.
+		}
+	};
+
+	if (picker && trigger && menu) {
+		const storedTheme = (() => {
+			try {
+				return localStorage.getItem(preferenceKey);
+			} catch {
+				return null;
+			}
+		})();
+		const initialTheme = storedTheme && validThemes.includes(storedTheme) ? storedTheme : defaultTheme;
+		setSelectedTheme(initialTheme);
+
+		trigger.addEventListener('click', () => {
+			const isOpen = trigger.getAttribute('aria-expanded') === 'true';
+			trigger.setAttribute('aria-expanded', String(!isOpen));
+			menu.classList.toggle('is-open', !isOpen);
+		});
+
+		options.forEach((option) => {
+			option.addEventListener('click', () => {
+				const theme = option.dataset.themeChoice;
+				if (!theme) return;
+				applyTheme(theme);
+				trigger.setAttribute('aria-expanded', 'false');
+				menu.classList.remove('is-open');
+			});
+		});
+
+		document.addEventListener('click', (event) => {
+			const target = event.target as Node;
+			if (!picker.contains(target)) {
+				trigger.setAttribute('aria-expanded', 'false');
+				menu.classList.remove('is-open');
+			}
+		});
+	}
+</script>
+
+<style>
+	.theme-picker { display: flex; align-items: center; gap: .6rem; }
+	.theme-label { color: var(--text-muted); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; }
+	.theme-menu-wrap { position: relative; }
+	.theme-trigger {
+		display: inline-flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		min-width: 148px;
+		height: 44px;
+		padding: 0 .85rem;
+		border: 1px solid var(--line);
+		border-radius: 1rem;
+		background: var(--surface);
+		color: var(--text);
+		cursor: pointer;
+		font: inherit;
+		font-size: .88rem;
+		font-weight: 600;
+		line-height: 1.2;
+		box-shadow: 0 4px 14px rgb(36 50 39 / 6%);
+		transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+	}
+	.theme-trigger:hover, .theme-trigger[aria-expanded='true'] {
+		border-color: var(--accent);
+		box-shadow: 0 8px 20px rgb(36 50 39 / 10%);
+		transform: translateY(-1px);
+	}
+	.theme-trigger-content { display: inline-flex; align-items: center; gap: .6rem; line-height: 1.2; }
+	.theme-trigger-label { display: block; transform: translateY(1px); }
+	.theme-swatch {
+		display: inline-block;
+		width: .85rem;
+		height: .85rem;
+		border-radius: 50%;
+		background: #49715a;
+		box-shadow: inset 0 0 0 1px rgb(0 0 0 / 8%), 0 0 0 3px var(--accent-soft);
+	}
+	.theme-caret {
+		display: block;
+		flex: 0 0 .5rem;
+		width: .5rem;
+		height: .5rem;
+		border-right: 2px solid var(--text-muted);
+		border-bottom: 2px solid var(--text-muted);
+		transform: translateY(-.15rem) rotate(45deg);
+		transition: transform .2s ease;
+	}
+	.theme-trigger[aria-expanded='true'] .theme-caret { transform: translateY(.1rem) rotate(225deg); }
+	.theme-menu {
+		position: absolute;
+		top: calc(100% + .55rem);
+		right: 0;
+		display: none;
+		min-width: 260px;
+		padding: .45rem;
+		border: 1px solid var(--line);
+		border-radius: 1rem;
+		background: color-mix(in srgb, var(--surface) 96%, var(--page));
+		box-shadow: 0 18px 36px rgba(21, 21, 21, .12);
+		z-index: 20;
+	}
+	.theme-menu.is-open { display: block; }
+	.theme-option {
+		display: flex;
+		align-items: center;
+		gap: .8rem;
+		width: 100%;
+		padding: .7rem .7rem;
+		border: 1px solid transparent;
+		border-radius: .8rem;
+		background: transparent;
+		color: var(--text);
+		cursor: pointer;
+		font: inherit;
+		text-align: left;
+	}
+	.theme-option:hover, .theme-option.is-selected { border-color: var(--line); background: var(--accent-soft); }
+	.theme-option-preview {
+		display: inline-grid;
+		grid-template-columns: 1.1rem 1.1rem 1.1rem;
+		gap: .25rem;
+		padding: .2rem;
+		border-radius: .5rem;
+		background: rgba(0,0,0,.03);
+	}
+	.preview-slab {
+		display: block;
+		height: 1.2rem;
+		border-radius: .3rem;
+	}
+	.preview-main { background: var(--option-swatch); }
+	.preview-accent { background: var(--option-accent); }
+	.preview-soft { background: var(--option-highlight); }
+	.theme-option-copy { display: flex; flex: 1; align-items: center; gap: .75rem; }
+	.option-name { font-weight: 600; }
+	@media (max-width: 760px) { .theme-picker { align-items: flex-start; flex-direction: column; gap: .25rem; } .theme-menu { min-width: min(260px, calc(100vw - 2rem)); } }
+	@media (max-width: 380px) {
+		.theme-trigger { min-width: 124px; gap: .5rem; padding: 0 .65rem; }
+		.theme-trigger-content { gap: .45rem; }
+	}
+</style>

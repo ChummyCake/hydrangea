@@ -1,0 +1,122 @@
+---
+import { PLAYLIST } from '../data/playlist';
+
+const selected = PLAYLIST[0];
+---
+
+<section class="playlist" aria-labelledby="playlist-title" data-playlist>
+	<div class="playlist-copy">
+		<p class="eyebrow">A soundtrack for us</p>
+		<h2 id="playlist-title">Songs that feel like home.</h2>
+		<p>Choose a song to listen while you read. Playback is always up to you.</p>
+	</div>
+	{PLAYLIST.length > 0 ? (
+		<div class="player-card">
+			<div class="track-now" aria-live="polite">
+				<span class="music-mark" aria-hidden="true">♫</span>
+				<div>
+					<p class="now-label">Selected song</p>
+					<p class="now-title" data-track-title>{selected?.title}</p>
+					<p class="now-artist" data-track-artist>{selected?.artist}</p>
+				</div>
+			</div>
+			<div class="media-frame">
+				<iframe
+					data-track-embed
+					src={selected?.kind === 'embed' ? selected.src : undefined}
+					title={selected ? `Music player: ${selected.title} by ${selected.artist}` : 'Music player'}
+					loading="lazy"
+					referrerpolicy="strict-origin-when-cross-origin"
+					allow="encrypted-media; picture-in-picture"
+					hidden={selected?.kind !== 'embed'}
+				></iframe>
+				<audio data-track-audio controls preload="none" src={selected?.kind === 'audio' ? selected.src : undefined} hidden>
+					Your browser does not support audio playback.
+				</audio>
+			</div>
+			<ul class="track-list" aria-label="Playlist">
+				{PLAYLIST.map((track, index) => (
+					<li>
+						<button
+							type="button"
+							class="track-choice"
+							data-track-index={index}
+							aria-pressed={index === 0 ? 'true' : 'false'}
+						>
+							<span class="track-number">{String(index + 1).padStart(2, '0')}</span>
+							<span class="track-meta"><span class="track-name">{track.title}</span><span class="track-by">{track.artist}</span></span>
+							<span class="track-play" aria-hidden="true">{index === 0 ? 'Selected' : 'Select'}</span>
+						</button>
+					</li>
+				))}
+			</ul>
+		</div>
+	) : (
+		<div class="playlist-note">
+			<span class="music-mark" aria-hidden="true">♫</span>
+			<p>We’re making a playlist. The songs we love will be here soon.</p>
+		</div>
+	)}
+</section>
+
+<script define:vars={{ tracks: PLAYLIST }}>
+	const playlist = document.querySelector('[data-playlist]');
+	if (playlist && tracks.length > 0) {
+		const trackButtons = [...playlist.querySelectorAll('[data-track-index]')];
+		const embed = playlist.querySelector('[data-track-embed]');
+		const audio = playlist.querySelector('[data-track-audio]');
+		const title = playlist.querySelector('[data-track-title]');
+		const artist = playlist.querySelector('[data-track-artist]');
+
+		trackButtons.forEach((button) => {
+			button.addEventListener('click', () => {
+				const track = tracks[Number(button.dataset.trackIndex)];
+				if (!track) return;
+				title.textContent = track.title;
+				artist.textContent = track.artist;
+				embed.hidden = track.kind !== 'embed';
+				embed.src = track.kind === 'embed' ? track.src : 'about:blank';
+				embed.title = `Music player: ${track.title} by ${track.artist}`;
+				audio.pause();
+				audio.hidden = track.kind !== 'audio';
+				audio.src = track.kind === 'audio' ? track.src : '';
+				audio.load();
+				trackButtons.forEach((item) => {
+					const active = item === button;
+					item.setAttribute('aria-pressed', String(active));
+					item.querySelector('.track-play').textContent = active ? 'Selected' : 'Select';
+				});
+			});
+		});
+	}
+</script>
+
+<style>
+	.playlist { display: grid; grid-template-columns: .8fr 1.2fr; gap: 3rem; align-items: start; padding: 2rem; border: 1px solid var(--line); border-radius: 1.5rem; background: var(--surface); }
+	.eyebrow { margin: 0 0 .7rem; color: var(--accent); font-size: .75rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+	.playlist-copy h2 { font-family: var(--font-serif); font-size: clamp(2rem, 4vw, 3.1rem); font-weight: 500; line-height: 1; }
+	.playlist-copy > p:last-child { color: var(--text-muted); font-size: .95rem; }
+	.player-card { min-width: 0; }
+	.track-now { display: flex; align-items: center; gap: .8rem; margin-bottom: 1rem; }
+	.music-mark { display: grid; flex: 0 0 2.8rem; width: 2.8rem; height: 2.8rem; place-items: center; border-radius: .9rem; background: var(--accent-soft); color: var(--accent); font-size: 1.5rem; }
+	.now-label, .now-title, .now-artist { margin: 0; }
+	.now-label { color: var(--text-muted); font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; }
+	.now-title { font-weight: 700; }
+	.now-artist { color: var(--text-muted); font-size: .85rem; }
+	.media-frame { overflow: hidden; border-radius: .8rem; }
+	.media-frame iframe { display: block; width: 100%; min-height: 150px; border: 0; background: var(--page); }
+	.media-frame iframe[hidden], .media-frame audio[hidden] { display: none; }
+	.media-frame audio { display: block; width: 100%; }
+	.track-list { margin: 1rem 0 0; padding: 0; list-style: none; }
+	.track-list li + li { border-top: 1px solid var(--line); }
+	.track-choice { display: flex; width: 100%; align-items: center; gap: .8rem; padding: .8rem .25rem; border: 0; background: transparent; color: var(--text); cursor: pointer; text-align: left; font: inherit; }
+	.track-choice[aria-pressed='true'] .track-name { color: var(--accent); }
+	.track-choice:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+	.track-number { color: var(--text-muted); font-size: .8rem; }
+	.track-meta { display: grid; flex: 1; }
+	.track-name { font-size: .9rem; font-weight: 700; }
+	.track-by, .track-play { color: var(--text-muted); font-size: .75rem; }
+	.playlist-note { display: flex; align-items: center; gap: 1rem; padding: 1.2rem; border: 1px dashed var(--line); border-radius: 1rem; color: var(--text-muted); }
+	.playlist-note p { margin: 0; font-size: .95rem; }
+	@media (max-width: 760px) { .playlist { grid-template-columns: 1fr; gap: 1rem; padding: 1.3rem; } }
+</style>

@@ -4,9 +4,9 @@ import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import { defineConfig, fontProviders } from 'astro/config';
 
-// https://astro.build/config
+// Set SITE_URL to the production domain in the deployment environment.
 export default defineConfig({
-	site: 'https://example.com',
+	site: process.env.SITE_URL || 'https://example.com',
 	integrations: [mdx(), sitemap()],
 	fonts: [
 		{

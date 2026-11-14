@@ -1,63 +1,50 @@
-# Astro Starter Kit: Blog
+# Cakey & Cynthia
+
+A small journal about our life together and the journey toward marriage. The site is built with Astro and rendered as static files for Cloudflare Workers.
+
+## Local development
 
 ```sh
-npm create astro@latest -- --template blog
+npm install
+npm run dev
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+The background development server runs at `http://localhost:4321`. Manage it with `astro dev status`, `astro dev logs`, and `astro dev stop`. Write journal entries as Markdown or MDX files in `src/content/blog/`; include a title, description, and publication date. Set `draft: true` to keep an entry out of the site, RSS feed, and sitemap routes.
 
-Features:
+## Themes and music
 
-- ✅ Minimal styling (make it your own!)
-- ✅ 100/100 Lighthouse performance
-- ✅ SEO-friendly with canonical URLs and Open Graph data
-- ✅ Sitemap support
-- ✅ RSS Feed support
-- ✅ Markdown & MDX support
+The theme picker has four built-in themes. Visitors can choose a theme from the header; the choice is saved in their browser.
 
-## 🚀 Project Structure
+Add songs to `src/data/playlist.ts`:
 
-Inside of your Astro project, you'll see the following folders and files:
+- Use `kind: 'embed'` and the provider’s embed URL for a streaming player.
+- Use `kind: 'audio'` and a path such as `/audio/song.mp3` for audio placed in `public/audio/`.
+- Only add audio you own or have permission to distribute. There is no upload interface; audio files are added to the project by its maintainers.
 
-```text
-├── public/
-├── src/
-│   ├── assets/
-│   ├── components/
-│   ├── content/
-│   ├── layouts/
-│   └── pages/
-├── astro.config.mjs
-├── README.md
-├── package.json
-└── tsconfig.json
+```ts
+export const PLAYLIST: PlaylistTrack[] = [
+	{ id: 'first-dance', title: 'Song title', artist: 'Artist', kind: 'embed', src: 'https://provider.example/embed/track-id' },
+	{ id: 'our-song', title: 'Another song', artist: 'Artist', kind: 'audio', src: '/audio/our-song.mp3' },
+];
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+The player does not autoplay. Visitors choose a song and control playback themselves.
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+## Deploy to Cloudflare Workers
 
-The `src/content/` directory contains "collections" of related Markdown and MDX documents. Use `getCollection()` to retrieve posts from `src/content/blog/`, and type-check your frontmatter using an optional schema. See [Astro's Content Collections docs](https://docs.astro.build/en/guides/content-collections/) to learn more.
+The site uses Astro’s static output, so it does not need an Astro server adapter or database. Set `SITE_URL` to the production origin (for example, `https://your-domain.example`) in the Cloudflare Workers Builds environment. This value is used for canonical links, RSS, and the sitemap; do not leave it as the `example.com` fallback for a production build.
 
-Any static assets, like images, can be placed in the `public/` directory.
+Connect this repository in Cloudflare **Workers & Pages → Create application → Import a repository** and configure:
 
-## 🧞 Commands
+- Build command: `npm run build`
+- Deploy command: `npx wrangler deploy`
+- Production branch: `main`
+- Environment variable: `SITE_URL=https://your-domain.example`
 
-All commands are run from the root of the project, from a terminal:
+The included `wrangler.jsonc` publishes the `dist/` folder as static assets. Pushes to the production branch deploy the site, and pull request builds can be used as previews. A custom domain can be attached to the Worker in Cloudflare.
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+For local deployment preview, set `SITE_URL` and run `npm run cf:dev`. To deploy manually, run `SITE_URL=https://your-domain.example npm run deploy` after authenticating Wrangler.
 
-## 👀 Want to learn more?
+## Later: invited home pages
 
-Check out [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
-
-## Credit
-
-This theme is based off of the lovely [Bear Blog](https://github.com/HermanMartinus/bearblog/).
+The current site intentionally has no accounts or user-editable pages. When that feature is ready, Astro can switch selected routes to on-demand rendering on Cloudflare Workers, with D1 for page and account data and R2 for approved media. Keep the public blog static and add authentication only for the owner editing area.

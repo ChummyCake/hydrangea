@@ -6,9 +6,11 @@
     "node": ">=22.23.4"
   },
   "scripts": {
-    "dev": "astro dev",
+		"dev": "astro dev --background",
     "build": "astro build",
     "preview": "astro preview",
+    "cf:dev": "npm run build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy",
     "astro": "astro"
   },
   "dependencies": {
@@ -17,5 +19,8 @@
     "@astrojs/sitemap": "^3.7.5",
     "astro": "^7.4.12",
     "sharp": "^0.35.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.162.0"
   }
 }

@@ -53,73 +53,76 @@ const defaultTheme = 'garden';
 	const preferenceKey = 'hydrangea-theme';
 	const validThemes = ['garden', 'sunset', 'lavender', 'midnight'];
 	const defaultTheme = 'garden';
-	const picker = document.querySelector('[data-theme-picker]');
-	const trigger = document.querySelector('[data-theme-trigger]');
-	const menu = document.querySelector('[data-theme-menu]');
-	const label = document.querySelector('[data-theme-label]');
-	const indicator = document.querySelector('[data-theme-indicator]');
-	const options = [...document.querySelectorAll('[data-theme-choice]')];
-	const themeLookup = Object.fromEntries(options.map((option) => [option.dataset.themeChoice, option]));
+	const initializePickers = () => {
+		document.querySelectorAll<HTMLElement>('[data-theme-picker]').forEach((picker) => {
+			if (picker.dataset.initialized === 'true') return;
+			picker.dataset.initialized = 'true';
+			const trigger = picker.querySelector<HTMLButtonElement>('[data-theme-trigger]');
+			const menu = picker.querySelector<HTMLElement>('[data-theme-menu]');
+			const label = picker.querySelector<HTMLElement>('[data-theme-label]');
+			const indicator = picker.querySelector<HTMLElement>('[data-theme-indicator]');
+			const options = [...picker.querySelectorAll<HTMLButtonElement>('[data-theme-choice]')];
+			const themeLookup = Object.fromEntries(options.map((option) => [option.dataset.themeChoice, option]));
 
-	const setSelectedTheme = (theme: string) => {
-		if (!picker || !trigger || !label || !indicator || !menu) return;
-		if (!validThemes.includes(theme)) return;
-		document.documentElement.dataset.theme = theme;
-		const activeOption = themeLookup[theme];
-		const activeTheme = (activeOption as HTMLElement)?.style.getPropertyValue('--option-swatch') || '#49715a';
-		label.textContent = theme.charAt(0).toUpperCase() + theme.slice(1);
-		indicator.style.background = activeTheme;
-		options.forEach((option) => {
-			const isSelected = option.dataset.themeChoice === theme;
-			option.setAttribute('aria-selected', String(isSelected));
-			option.classList.toggle('is-selected', isSelected);
-		});
-	};
+			const setSelectedTheme = (theme: string) => {
+				if (!trigger || !label || !indicator || !menu || !validThemes.includes(theme)) return;
+				document.documentElement.dataset.theme = theme;
+				const activeTheme = themeLookup[theme]?.style.getPropertyValue('--option-swatch') || '#49715a';
+				label.textContent = theme.charAt(0).toUpperCase() + theme.slice(1);
+				indicator.style.background = activeTheme;
+				options.forEach((option) => {
+					const isSelected = option.dataset.themeChoice === theme;
+					option.setAttribute('aria-selected', String(isSelected));
+					option.classList.toggle('is-selected', isSelected);
+				});
+			};
 
-	const applyTheme = (theme: string) => {
-		setSelectedTheme(theme);
-		try {
-			localStorage.setItem(preferenceKey, theme);
-		} catch {
-			// Theme selection still works for this page view without storage.
-		}
-	};
+			const applyTheme = (theme: string) => {
+				setSelectedTheme(theme);
+				try {
+					localStorage.setItem(preferenceKey, theme);
+				} catch {
+					// Theme selection still works for this page view without storage.
+				}
+			};
 
-	if (picker && trigger && menu) {
-		const storedTheme = (() => {
-			try {
-				return localStorage.getItem(preferenceKey);
-			} catch {
-				return null;
-			}
-		})();
-		const initialTheme = storedTheme && validThemes.includes(storedTheme) ? storedTheme : defaultTheme;
-		setSelectedTheme(initialTheme);
+			const storedTheme = (() => {
+				try {
+					return localStorage.getItem(preferenceKey);
+				} catch {
+					return null;
+				}
+			})();
+			setSelectedTheme(storedTheme && validThemes.includes(storedTheme) ? storedTheme : defaultTheme);
 
-		trigger.addEventListener('click', () => {
-			const isOpen = trigger.getAttribute('aria-expanded') === 'true';
-			trigger.setAttribute('aria-expanded', String(!isOpen));
-			menu.classList.toggle('is-open', !isOpen);
-		});
+			trigger?.addEventListener('click', () => {
+				if (!menu || !trigger) return;
+				const isOpen = trigger.getAttribute('aria-expanded') === 'true';
+				trigger.setAttribute('aria-expanded', String(!isOpen));
+				menu.classList.toggle('is-open', !isOpen);
+			});
 
-		options.forEach((option) => {
-			option.addEventListener('click', () => {
-				const theme = option.dataset.themeChoice;
-				if (!theme) return;
-				applyTheme(theme);
-				trigger.setAttribute('aria-expanded', 'false');
-				menu.classList.remove('is-open');
+			options.forEach((option) => {
+				option.addEventListener('click', () => {
+					const theme = option.dataset.themeChoice;
+					if (!theme || !trigger || !menu) return;
+					applyTheme(theme);
+					trigger.setAttribute('aria-expanded', 'false');
+					menu.classList.remove('is-open');
+				});
 			});
 		});
+	};
 
-		document.addEventListener('click', (event) => {
-			const target = event.target as Node;
-			if (!picker.contains(target)) {
-				trigger.setAttribute('aria-expanded', 'false');
-				menu.classList.remove('is-open');
-			}
+	initializePickers();
+	document.addEventListener('astro:page-load', initializePickers);
+	document.addEventListener('click', (event) => {
+		document.querySelectorAll<HTMLElement>('[data-theme-picker]').forEach((picker) => {
+			if (picker.contains(event.target as Node)) return;
+			picker.querySelector('[data-theme-trigger]')?.setAttribute('aria-expanded', 'false');
+			picker.querySelector('[data-theme-menu]')?.classList.remove('is-open');
 		});
-	}
+	});
 </script>
 
 <style>

@@ -1,5 +1,6 @@
 ---
 import ThemePicker from './ThemePicker.astro';
+import MusicPlayer from './MusicPlayer.astro';
 import { SITE_TITLE } from '../consts';
 import cakeIcon from '../assets/cake.svg';
 import hydrangeaIcon from '../assets/hydrangea.svg';
@@ -12,22 +13,35 @@ import hydrangeaIcon from '../assets/hydrangea.svg';
 			<span>{SITE_TITLE}</span>
 			<img class="brand-icon brand-icon-flower" src={hydrangeaIcon.src} alt="" aria-hidden="true" />
 		</a>
+		<MusicPlayer />
 		<ThemePicker />
 	</nav>
 </header>
 
 <style>
 	.site-header { position: relative; z-index: 1; border-bottom: 1px solid var(--line); background: var(--page); }
-	nav { display: flex; max-width: 1180px; min-height: 78px; align-items: center; justify-content: space-between; gap: 1rem; margin: 0 auto; padding: .75rem 1.5rem; }
-	.brand { display: inline-flex; align-items: center; gap: .65rem; color: var(--text); font-family: var(--font-serif); font-size: 1.2rem; font-weight: 600; text-decoration: none; white-space: nowrap; }
+	nav { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; max-width: 1180px; min-height: 78px; align-items: center; gap: 1rem; margin: 0 auto; padding: .75rem 1.5rem; }
+	.brand { display: inline-flex; align-items: center; justify-self: start; gap: .65rem; color: var(--text); font-family: var(--font-serif); font-size: 1.2rem; font-weight: 600; text-decoration: none; white-space: nowrap; }
 	.brand-icon { display: block; width: 1.6rem; height: 1.6rem; object-fit: contain; }
 	.brand-icon-cake { transform: translateY(-2px); }
 	.brand-icon-flower { width: 2rem; height: 2rem; margin-left: -.25rem; }
-	@media (max-width: 760px) { nav { padding: .65rem 1rem; } .brand { font-size: 1rem; } }
+	@media (max-width: 920px) {
+		nav { grid-template-columns: minmax(0, 1fr) auto; gap: .6rem; padding: .65rem 1rem; }
+		.brand { font-size: 1rem; }
+		nav :global(.music-player) { grid-column: 1 / -1; grid-row: 2; }
+	}
 	@media (max-width: 380px) {
-		nav { gap: .5rem; }
-		.brand { gap: .35rem; }
+		nav { grid-template-columns: minmax(0, 1fr); gap: .55rem; }
+		.brand { grid-column: 1; grid-row: 1; justify-self: center; gap: .25rem; }
 		.brand-icon-cake { width: 1.35rem; height: 1.35rem; }
 		.brand-icon-flower { width: 1.7rem; height: 1.7rem; margin-left: -.15rem; }
+		nav :global(.theme-picker) {
+			grid-column: 1;
+			grid-row: 2;
+			justify-self: center;
+			align-items: center;
+			flex-direction: row;
+		}
+		nav :global(.music-player) { grid-column: 1; grid-row: 3; }
 	}
 </style>

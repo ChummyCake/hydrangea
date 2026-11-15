@@ -10,12 +10,18 @@ export type PlaylistTrack = {
 export const PLAYLIST: PlaylistTrack[] = [
 	{
 		id: "1",
+		title: "bee.",
+		artist: "GroovyDominoes52",
+		src: "/music/bee.mp3",
+	},
+	{
+		id: "2",
 		title: "tohiko",
 		artist: "Eve",
 		src: "/music/tohiko.mp3",
 	},
 	{
-		id: "2",
+		id: "3",
 		title: "Dramaturgy",
 		artist: "Eve",
 		src: "/music/dramaturgy.mp3",

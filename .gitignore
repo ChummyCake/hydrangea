@@ -1,11 +1,16 @@
-# build output
-dist/
-# generated types
-.astro/
-.wrangler/
+# build output and generated files
+/dist/
+/.astro/
+/.wrangler/
 
 # dependencies
 node_modules/
+
+# test output
+/coverage/
+/playwright-report/
+/test-results/
+/blob-report/
 
 # logs
 npm-debug.log*
@@ -13,10 +18,14 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-
 # environment variables
-.env
-.env.production
+.env*
+!.env.example
+
+# local agent and Buddy CLI configuration; keep .buddy pipeline definitions tracked
+/.agents/
+/.bdy/
+/skills-lock.json
 
 # macOS-specific files
 .DS_Store

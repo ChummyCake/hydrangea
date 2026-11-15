@@ -1,50 +1,55 @@
-# Cakey & Cynthia
+# Hydrangea
 
-A small journal about our life together and the journey toward marriage. The site is built with Astro and rendered as static files for Cloudflare Workers.
+A small journal by Cakey and Cynthia about the moments and milestones on our way to marriage.
 
-## Local development
+## Current site
+
+- Astro generates a static site from Markdown and MDX posts in `src/content/blog/`.
+- The blog has an about page, RSS feed, and sitemap.
+- The header music player uses local audio files listed in `src/data/playlist.ts`. Playback starts only when a visitor chooses to play.
+- Visitors can choose from four built-in themes. Their selection is saved in the browser.
+
+Posts use typed frontmatter defined in `src/content.config.ts`. Set `draft: false` to publish a post. The current sample posts are drafts.
+
+## Architecture
+
+The site is a static Astro project deployed as Cloudflare Worker static assets. It does not currently need a database, server adapter, or application API. `wrangler.jsonc` names the Worker and publishes `dist/`.
+
+## Development
+
+Requirements: Node.js 22.23.4 or later.
 
 ```sh
-npm install
+npm ci
 npm run dev
+npm run build
+npm run preview
 ```
 
-The background development server runs at `http://localhost:4321`. Manage it with `astro dev status`, `astro dev logs`, and `astro dev stop`. Write journal entries as Markdown or MDX files in `src/content/blog/`; include a title, description, and publication date. Set `draft: true` to keep an entry out of the site, RSS feed, and sitemap routes.
+For a local Cloudflare Worker preview, set `SITE_URL` to the local origin and run `npm run cf:dev`.
 
-## Themes and music
+## Deployment
 
-The theme picker has four built-in themes. Visitors can choose a theme from the header; the choice is saved in their browser.
+The development site is deployed at [hydrangea-cakey-cynthia-dev.minhtrilethanh.workers.dev](https://hydrangea-cakey-cynthia-dev.minhtrilethanh.workers.dev/).
 
-Add songs to `src/data/playlist.ts`:
+Buddy pipeline `hydrangea-dev` runs on pushes to `dev`. It installs dependencies, builds the site, runs `npm run test:ci` when that script exists, and deploys with Wrangler. Its definition is in `.buddy/pipelines/dev.yml`.
 
-- Use `kind: 'embed'` and the provider’s embed URL for a streaming player.
-- Use `kind: 'audio'` and a path such as `/audio/song.mp3` for audio placed in `public/audio/`.
-- Only add audio you own or have permission to distribute. There is no upload interface; audio files are added to the project by its maintainers.
+The Buddy project needs these variables:
 
-```ts
-export const PLAYLIST: PlaylistTrack[] = [
-	{ id: 'first-dance', title: 'Song title', artist: 'Artist', kind: 'embed', src: 'https://provider.example/embed/track-id' },
-	{ id: 'our-song', title: 'Another song', artist: 'Artist', kind: 'audio', src: '/audio/our-song.mp3' },
-];
+- `SITE_URL`: the development Worker origin.
+- `CLOUDFLARE_ACCOUNT_ID`: the Cloudflare account ID.
+- `CLOUDFLARE_API_TOKEN`: a masked token with Workers Editor access scoped to the development Worker.
+
+To deploy manually, authenticate Wrangler and run:
+
+```sh
+SITE_URL=https://hydrangea-cakey-cynthia-dev.minhtrilethanh.workers.dev npm run deploy:dev
 ```
 
-The player does not autoplay. Visitors choose a song and control playback themselves.
+There is no production Worker, custom domain, or production pipeline yet.
 
-## Deploy to Cloudflare Workers
+## Roadmap
 
-The site uses Astro’s static output, so it does not need an Astro server adapter or database. Set `SITE_URL` to the production origin (for example, `https://your-domain.example`) in the Cloudflare Workers Builds environment. This value is used for canonical links, RSS, and the sitemap; do not leave it as the `example.com` fallback for a production build.
-
-Connect this repository in Cloudflare **Workers & Pages → Create application → Import a repository** and configure:
-
-- Build command: `npm run build`
-- Deploy command: `npx wrangler deploy`
-- Production branch: `main`
-- Environment variable: `SITE_URL=https://your-domain.example`
-
-The included `wrangler.jsonc` publishes the `dist/` folder as static assets. Pushes to the production branch deploy the site, and pull request builds can be used as previews. A custom domain can be attached to the Worker in Cloudflare.
-
-For local deployment preview, set `SITE_URL` and run `npm run cf:dev`. To deploy manually, run `SITE_URL=https://your-domain.example npm run deploy` after authenticating Wrangler.
-
-## Later: invited home pages
-
-The current site intentionally has no accounts or user-editable pages. When that feature is ready, Astro can switch selected routes to on-demand rendering on Cloudflare Workers, with D1 for page and account data and R2 for approved media. Keep the public blog static and add authentication only for the owner editing area.
+1. Replace the draft posts with our stories and photos; expand theme and background choices as needed.
+2. Add invited users’ public, read-only home pages with owner customization.
+3. Add authentication and data storage when those pages need editing and persistence. Keep the main journal static where possible.

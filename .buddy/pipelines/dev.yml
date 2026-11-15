@@ -1,0 +1,28 @@
+- pipeline: hydrangea-dev
+  name: Hydrangea · Development
+  description_required: false
+  definition_source: LOCAL
+  disabled: false
+  refs:
+    - refs/heads/dev
+  events:
+    - type: PUSH
+      refs:
+        - refs/heads/dev
+  target_site_url: $SITE_URL
+  cache_scope: PROJECT
+  actions:
+    - action: Build, test, and deploy dev
+      type: BUILD
+      docker_image_name: library/node
+      docker_image_tag: "24"
+      timeout: 1800
+      commands: |-
+        set -eu
+        : "${SITE_URL:?Buddy project variable SITE_URL is required}"
+        : "${CLOUDFLARE_API_TOKEN:?Buddy project variable CLOUDFLARE_API_TOKEN is required}"
+        : "${CLOUDFLARE_ACCOUNT_ID:?Buddy project variable CLOUDFLARE_ACCOUNT_ID is required}"
+        npm ci
+        npm run build
+        npm run test:ci --if-present
+        npx wrangler deploy --config wrangler.jsonc

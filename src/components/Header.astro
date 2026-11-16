@@ -9,9 +9,17 @@ import hydrangeaIcon from '../assets/hydrangea.svg';
 <header class="site-header">
 	<nav aria-label="Main navigation">
 		<a class="brand" href="/" aria-label={`${SITE_TITLE} home`}>
-			<img class="brand-icon brand-icon-cake" src={cakeIcon.src} alt="" aria-hidden="true" />
+			<span
+				class="brand-icon brand-icon-cake"
+				style={`--icon-mask: url("${cakeIcon.src}")`}
+				aria-hidden="true"
+			></span>
 			<span>{SITE_TITLE}</span>
-			<img class="brand-icon brand-icon-flower" src={hydrangeaIcon.src} alt="" aria-hidden="true" />
+			<span
+				class="brand-icon brand-icon-flower"
+				style={`--icon-mask: url("${hydrangeaIcon.src}")`}
+				aria-hidden="true"
+			></span>
 		</a>
 		<MusicPlayer />
 		<ThemePicker />
@@ -22,7 +30,15 @@ import hydrangeaIcon from '../assets/hydrangea.svg';
 	.site-header { position: relative; z-index: 1; border-bottom: 1px solid var(--line); background: var(--page); }
 	nav { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; max-width: 1180px; min-height: 78px; align-items: center; gap: 1rem; margin: 0 auto; padding: .75rem 1.5rem; }
 	.brand { display: inline-flex; align-items: center; justify-self: start; gap: .65rem; color: var(--text); font-family: var(--font-serif); font-size: 1.2rem; font-weight: 600; text-decoration: none; white-space: nowrap; }
-	.brand-icon { display: block; width: 1.6rem; height: 1.6rem; object-fit: contain; }
+	.brand-icon {
+		display: block;
+		width: 1.6rem;
+		height: 1.6rem;
+		flex: 0 0 auto;
+		background-color: currentColor;
+		mask: var(--icon-mask) center / contain no-repeat;
+		-webkit-mask: var(--icon-mask) center / contain no-repeat;
+	}
 	.brand-icon-cake { transform: translateY(-2px); }
 	.brand-icon-flower { width: 2rem; height: 2rem; margin-left: -.25rem; }
 	@media (max-width: 920px) {
